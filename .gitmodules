@@ -1,0 +1,15 @@
+[submodule "3rdparty/glfw"]
+	path = 3rdparty/glfw
+	url = ../../glfw/glfw.git
+[submodule "3rdparty/bx"]
+	path = 3rdparty/bx
+	url = ../../bkaradzic/bx.git
+[submodule "3rdparty/bimg"]
+	path = 3rdparty/bimg
+	url = ../../bkaradzic/bimg.git
+[submodule "3rdparty/bgfx"]
+	path = 3rdparty/bgfx
+	url = ../../bkaradzic/bgfx.git
+[submodule "3rdparty/imgui"]
+	path = 3rdparty/imgui
+	url = ../../ocornut/imgui.git

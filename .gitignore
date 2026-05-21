@@ -43,6 +43,7 @@
 build/
 Build/
 build-*/
+build_*/
 
 # CMake generated files
 CMakeFiles/
@@ -51,12 +52,28 @@ cmake_install.cmake
 Makefile
 install_manifest.txt
 compile_commands.json
+CTestTestfile.cmake
+cmake-build-*/
+
+# CMake / Ninja
+*.ninja
+.ninja_deps
+.ninja_log
+
+# IDE / editor
+.idea/
+.vscode/
+.vs/
+*.xcworkspace
+*.xcodeproj
+DerivedData/
 
 # Temporary files
 *.tmp
 *.log
 *.bak
 *.swp
+*.swo
 
 # vcpkg
 vcpkg_installed/
@@ -67,3 +84,9 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+
+# macOS
+.DS_Store
+
+# clangd / LLVM
+.clangd/
