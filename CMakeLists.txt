@@ -43,12 +43,22 @@ target_compile_definitions(bx PUBLIC
     $<$<NOT:$<CONFIG:Debug>>:BX_CONFIG_DEBUG=0>
 )
 
+# ==========================================================
+# 核心修正：双重保险抓取 astc-encoder 的核心实现源码
+# (兼容 source 和 Source 大小写，同时过滤掉可能导致冲突的 main 函数)
+# ==========================================================
+file(GLOB BIMG_ASTC_SOURCES
+        "3rdparty/bimg/3rdparty/astc-encoder/source/astcenc_*.cpp"
+        "3rdparty/bimg/3rdparty/astc-encoder/Source/astcenc_*.cpp"
+)
+
 add_library(bimg STATIC
     3rdparty/bimg/src/image.cpp
     3rdparty/bimg/src/image_cubemap_filter.cpp
     3rdparty/bimg/src/image_decode.cpp
     3rdparty/bimg/src/image_encode.cpp
     3rdparty/bimg/src/image_gnf.cpp
+   ${BIMG_ASTC_SOURCES} # 把抓取到的源码交给 bimg 一起编译
 )
 
 target_include_directories(bimg PUBLIC
@@ -115,6 +125,7 @@ add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
         include/window/window.h
         src/window/window.cpp
+        include/gamepadBtn/gamepadBtn.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

@@ -8,9 +8,13 @@
 #include <iostream>
 #include <string>
 #include <GLFW/glfw3.h>
-
+#include "gamepadBtn/gamepadBtn.h"
 class Window {
 public:
+
+    // 测试PS 的 〇 按钮 (Circle)
+    GamepadBtn *m_gamepadBtn;
+
     /// 构造函数
     Window(int width, int height,const std::string &title);
 
@@ -26,6 +30,9 @@ public:
     /// 检查窗口是否应该关闭
     bool shouldClose() const;
 
+    /// bgfx 渲染
+    void render();
+
     /// 获取底层的 GLFWwindow 指针 (供外部集成 bgfx 或 ImGui 使用)
     GLFWwindow *getNativeWindow() const { return m_window ;};
 
@@ -38,6 +45,12 @@ public:
     static void framebufferResizeCallback(GLFWwindow *window, int width, int height);
     /// 键盘事件回调
     static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+    /// 窗口位置移动回调
+    static void windowPositionCallback(GLFWwindow *window, int posx, int posy);
+
+    /// 系统强制重绘回调
+    static void windowRefreshCallback(GLFWwindow *window);
 private:
     GLFWwindow *m_window;
     int m_width;
