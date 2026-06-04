@@ -113,6 +113,8 @@ target_link_libraries(imgui_glfw PUBLIC
 
 add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
+        include/window/window.h
+        src/window/window.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
