@@ -14,7 +14,10 @@ public:
 
     // 测试PS 的 〇 按钮 (Circle)
     GamepadBtn *m_gamepadBtn;
+    void initImGui();   // 专门初始化 ImGui
+    void renderBtn();   // 专门绘制按键
 
+    
     /// 构造函数
     Window(int width, int height,const std::string &title);
 

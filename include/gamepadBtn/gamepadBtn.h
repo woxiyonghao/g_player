@@ -23,7 +23,7 @@ public:
 class PSCircleBtn:public GamepadBtn {
 public:
     PSCircleBtn(ImVec2 pos, float radius, ImU32 color)
-        : GameButton(pos, radius, color) {}
+        : GamepadBtn(pos, radius, color) {}
     // 实现具体的画法
     void draw(ImDrawList* drawList) override {
         // ImGui 画空心圆 API：中心点, 半径, 颜色, 细分数(32代表很圆), 线条粗细

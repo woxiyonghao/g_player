@@ -14,7 +14,8 @@
 // 告诉 GLFW 我们在 Mac 上，需要暴露 Cocoa 原生窗口接口
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include "GLFW/glfw3native.h"
-
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
 /// 构造函数
 Window::Window(int width, int height,const std::string &title): m_width(width), m_height(height), m_title(title) {
     std::cout

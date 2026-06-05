@@ -90,3 +90,6 @@ Testing/
 
 # clangd / LLVM
 .clangd/
+build/
+build_*
+cmake-build-*
