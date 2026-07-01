@@ -113,6 +113,9 @@ bool Window::init() {
     bgfxInit.resolution.height = static_cast<uint32_t>(m_height);
     // 开启垂直同步，防止画面撕裂
     bgfxInit.resolution.reset = BGFX_RESET_VSYNC;
+    // bgfxInit 申请更大的显存控件
+    bgfxInit.limits.maxTransientVbSize = 15 * 1024 * 1024;
+    bgfxInit.limits.maxTransientIbSize = 15 * 1024 * 1024;
     // 【关键绑定】获取 Mac 的原生窗口句柄并塞给 bgfx
     bgfx::PlatformData pd{};
 #ifdef __APPLE__
@@ -134,7 +137,7 @@ bool Window::init() {
     Window::initImGui();
 
     // 装载繁星主题！
-    m_currentTheme = new StarryTheme(m_width, m_height);
+    m_currentTheme = new StarryTheme();
     return true;
 }
 
@@ -172,7 +175,7 @@ void Window::framebufferResizeCallback(GLFWwindow *window, int width, int height
     bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(width), static_cast<uint16_t>(height));
 
     // 2. 在主循环被冻结时，在这里强行画一帧
-    appWindow->render();
+    //appWindow->render();
 }
 /// 键盘事件回调, .cpp文件中不能写static，static只能写在.h
 void Window::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -238,7 +241,7 @@ void Window::render() {
 
 
     // 0. 清理旧画布
-    uint32_t clearColor = m_currentTheme ? m_currentTheme->getClearColor() : 0x1a233aFF; // 默认色
+    uint32_t clearColor = m_currentTheme ? m_currentTheme->getClearColor() : 0x000000FF; // 默认色
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColor, 1.0f, 0); // 重新设置这一帧画布的底色并擦除上一帧的残影
     bgfx::touch(0); // 告诉 bgfx 这一帧我们要刷新 View 0
 
