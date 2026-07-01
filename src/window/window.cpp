@@ -11,11 +11,17 @@
 #include <cmath>
 // 导入bgfx
 #include "bgfx/bgfx.h"
-// 告诉 GLFW 我们在 Mac 上，需要暴露 Cocoa 原生窗口接口
-#define GLFW_EXPOSE_NATIVE_COCOA
-#include "GLFW/glfw3native.h"
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
+#include "window/imgui_impl_bgfx.h"
+#include "gamepadBtn/gamepadBtn.h"
+
+// 告诉 GLFW 我们在 Mac 上，需要暴露 Cocoa 原生窗口接口
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include "imgui_internal.h"
+#include "GLFW/glfw3native.h"
+#include "Theme/starryTheme.h"
+
 /// 构造函数
 Window::Window(int width, int height,const std::string &title): m_width(width), m_height(height), m_title(title) {
     std::cout
@@ -28,6 +34,12 @@ Window::Window(int width, int height,const std::string &title): m_width(width), 
 /// 析构函数,负责清理资源
 Window::~Window() {
     std::cout << "Window::~Window()" << std::endl;
+
+    // 新增这三行清理 ImGui
+    ImGui_Implbgfx_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     // 必须在销毁底层窗口之前，先关闭 bgfx 引擎释放 GPU 资源！
     bgfx::shutdown();
     if (m_window) {
@@ -36,6 +48,12 @@ Window::~Window() {
     }
     // 彻底清理 GLFW 分配的底层资源
     glfwTerminate();
+
+    // 释放Theme指针
+    if (m_currentTheme != nullptr) {
+        delete m_currentTheme;
+        m_currentTheme = nullptr;
+    }
 }
 
 /// 初始化函数,返回是否成功
@@ -111,6 +129,12 @@ bool Window::init() {
     bgfx::setViewRect(0,0,0,static_cast<uint16_t>(m_width),static_cast<uint16_t>(m_height));
     // 设置 View 0 的默认清除颜色（十六进制：0xRRGGBBFF，默认先给个深暗青色）
     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x1a233aFF, 1.0f, 0);
+
+    // 初始化ImGui
+    Window::initImGui();
+
+    // 装载繁星主题！
+    m_currentTheme = new StarryTheme(m_width, m_height);
     return true;
 }
 
@@ -175,26 +199,62 @@ void Window::keyCallback(GLFWwindow *window, int key, int scancode, int action, 
 
 void Window::render() {
     // 动态改变背景色的魔法（让颜色随着时间呼吸变化）
-    static float time = 0.0f;
-    time += 0.02f;
-    // 利用 sin 函数把值限制在 0.0 ~ 1.0 之间
-    float colorFactor = (std::sin(time) * 0.5f) + 0.5f;
-    // 动态计算红色通道的值 (0 ~ 255)
-    uint8_t r = static_cast<uint8_t>(colorFactor * 255);
-    uint8_t g = 0x20; // 固定的绿色分量
-    uint8_t b = 0x60; // 固定的蓝色分量
-    // 组合成 bgfx 认识的 0xRRGGBBFF 格式
-    uint32_t clearColor = (static_cast<uint32_t>(r) << 24) |
-                          (static_cast<uint32_t>(g) << 16) |
-                          (static_cast<uint32_t>(b) << 8) |
-                          0xFF;
+    // static float time = 0.0f;
+    // time += 0.02f;
+    // // 利用 sin 函数把值限制在 0.0 ~ 1.0 之间
+    // float colorFactor = (std::sin(time) * 0.5f) + 0.5f;
+    // // 动态计算红色通道的值 (0 ~ 255)
+    // uint8_t r = static_cast<uint8_t>(colorFactor * 255);
+    // uint8_t g = 0x20; // 固定的绿色分量
+    // uint8_t b = 0x60; // 固定的蓝色分量
+    // // 组合成 bgfx 认识的 0xRRGGBBFF 格式
+    // uint32_t clearColor = (static_cast<uint32_t>(r) << 24) |
+    //                       (static_cast<uint32_t>(g) << 16) |
+    //                       (static_cast<uint32_t>(b) << 8) |
+    //                       0xFF;
+    //
+    // // 重新设置这一帧画布的底色
+    // bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColor, 1.0f, 0);
+    // // 告诉 bgfx 这一帧我们要刷新 View 0
+    // bgfx::touch(0);
+    // // 注意：使用 bgfx 后，我们【不再需要】原来的 glfwSwapBuffers(m_window) 了！
+    //
+    // // 开始画ps按钮
+    // // 1. 启动新的一帧
+    // ImGui_Implbgfx_NewFrame();
+    // ImGui_ImplGlfw_NewFrame();
+    // ImGui::NewFrame();
+    //
+    // // 2. 画你的按键！
+    // Window::renderBtn();
+    //
+    // // 3. ImGui 开始打包数据
+    // ImGui::Render();
+    // // 4. 将 UI 打包发送给 GPU
+    // ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
+    //
+    // // 因为 bgfx::frame() 会接管一切，在后台默默和 Metal 驱动打交道并刷新屏幕。
+    // bgfx::frame();
 
-    // 重新设置这一帧画布的底色
-    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColor, 1.0f, 0);
-    // 告诉 bgfx 这一帧我们要刷新 View 0
-    bgfx::touch(0);
-    // 注意：使用 bgfx 后，我们【不再需要】原来的 glfwSwapBuffers(m_window) 了！
-    // 因为 bgfx::frame() 会接管一切，在后台默默和 Metal 驱动打交道并刷新屏幕。
+
+    // 0. 清理旧画布
+    uint32_t clearColor = m_currentTheme ? m_currentTheme->getClearColor() : 0x1a233aFF; // 默认色
+    bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, clearColor, 1.0f, 0); // 重新设置这一帧画布的底色并擦除上一帧的残影
+    bgfx::touch(0); // 告诉 bgfx 这一帧我们要刷新 View 0
+
+    // 1.准备新的画布
+    ImGui_Implbgfx_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    // 2.渲染的内容
+    if (m_currentTheme) {
+        ImDrawList *bgDrawList = ImGui::GetBackgroundDrawList();
+        m_currentTheme->render(bgDrawList,m_width,m_height);
+    }
+
+    // 3.提交frame
+    ImGui::Render();
+    ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
     bgfx::frame();
 }
 
@@ -219,4 +279,23 @@ void Window::windowRefreshCallback(GLFWwindow *window){
     }
     // 主循环被冻结了？没关系，我们在这里强行画！
     appWindow->render();
+}
+
+// 专门初始化 ImGui
+void Window::initImGui() {
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    // 绑定 GLFW 的键盘鼠标输入
+    ImGui_ImplGlfw_InitForOther(m_window,true);
+    // 绑定 bgfx 渲染后端 (分配 View 255 专门给 UI，防止和背景冲突)
+    ImGui_Implbgfx_Init(255);
+}
+// 专门绘制按键
+void Window::renderBtn() {
+    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
+    // 1. Debug 测试：屏幕左上角画一个红色方块
+    //drawList->AddRectFilled({0,0},{100,100},IM_COL32(255, 0, 0, 255));
+    // 2. 实例化并画出 PS 〇 键 (坐标: 400, 300，半径 50)
+    PSCircleBtn pscircleBtn({400.0f, 300.0f}, 50.0f, IM_COL32(0, 160, 255, 255));
+    pscircleBtn.draw(drawList);
 }

@@ -125,7 +125,11 @@ add_executable(${PROJECT_NAME}
     ${APP_SOURCES}
         include/window/window.h
         src/window/window.cpp
+        src/window/imgui_impl_bgfx.cpp
         include/gamepadBtn/gamepadBtn.h
+        include/Theme/theme.h
+        include/Theme/starryTheme.h
+        src/window/starryTheme.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

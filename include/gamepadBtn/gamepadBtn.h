@@ -15,7 +15,7 @@ public:
     // 构造函数：诞生的时候必须交代位置、大小和颜色
     GamepadBtn(ImVec2 pos, float radius, ImU32 color) :m_pos(pos), m_radius(radius), m_color(color) {};
     // 虚析构函数 派生类覆盖指针，防止内存泄漏
-    virtual ~GamepadBtn();
+    virtual ~GamepadBtn() = default;
     // 纯虚函数：这就是命令所有子类“必须自己实现怎么画自己”
     virtual void draw(ImDrawList* drawList) = 0;
 };
@@ -29,4 +29,5 @@ public:
         // ImGui 画空心圆 API：中心点, 半径, 颜色, 细分数(32代表很圆), 线条粗细
         drawList->AddCircle(m_pos, m_radius, m_color, 32, 4.0f);
     }
+    
 };

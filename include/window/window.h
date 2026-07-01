@@ -9,9 +9,13 @@
 #include <string>
 #include <GLFW/glfw3.h>
 #include "gamepadBtn/gamepadBtn.h"
+#include "Theme/theme.h"
 class Window {
 public:
 
+    // 当前正在运行的主题
+    Theme *m_currentTheme = nullptr;
+    
     // 测试PS 的 〇 按钮 (Circle)
     GamepadBtn *m_gamepadBtn;
     void initImGui();   // 专门初始化 ImGui
