@@ -15,6 +15,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "window/imgui_impl_bgfx.h"
 #include "gamepadBtn/gamepadBtn.h"
+#include "gamepadBtn/settingBtn.h"
 
 // 告诉 GLFW 我们在 Mac 上，需要暴露 Cocoa 原生窗口接口
 #define GLFW_EXPOSE_NATIVE_COCOA
@@ -254,6 +255,9 @@ void Window::render() {
         ImDrawList *bgDrawList = ImGui::GetBackgroundDrawList();
         m_currentTheme->render(bgDrawList,m_width,m_height);
     }
+    
+    // 必须调用 renderBtn()，否则按钮的代码永远不会执行！
+    renderBtn();
 
     // 3.提交frame
     ImGui::Render();
@@ -286,19 +290,40 @@ void Window::windowRefreshCallback(GLFWwindow *window){
 
 // 专门初始化 ImGui
 void Window::initImGui() {
+    // 1. 创建 ImGui 上下文
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    
+    // 2. 开启深色主题（可以以后改您的“高达主题”）
     ImGui::StyleColorsDark();
-    // 绑定 GLFW 的键盘鼠标输入
-    ImGui_ImplGlfw_InitForOther(m_window,true);
-    // 绑定 bgfx 渲染后端 (分配 View 255 专门给 UI，防止和背景冲突)
+
+    // 3. 初始化平台和渲染器后端
+    ImGui_ImplGlfw_InitForOther(m_window, true);
+    // 这里传入 bgfx 的 view id (我们用 255 这个专门留给 UI 的通道)
     ImGui_Implbgfx_Init(255);
 }
+
 // 专门绘制按键
 void Window::renderBtn() {
-    ImDrawList* drawList = ImGui::GetBackgroundDrawList();
-    // 1. Debug 测试：屏幕左上角画一个红色方块
-    //drawList->AddRectFilled({0,0},{100,100},IM_COL32(255, 0, 0, 255));
-    // 2. 实例化并画出 PS 〇 键 (坐标: 400, 300，半径 50)
-    PSCircleBtn pscircleBtn({400.0f, 300.0f}, 50.0f, IM_COL32(0, 160, 255, 255));
-    pscircleBtn.draw(drawList);
+    // 创建一个全屏的、透明的、不可见的底层面板，专门用来承载我们的按钮和交互
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(m_width, m_height));
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | 
+                                    ImGuiWindowFlags_NoBackground | 
+                                    ImGuiWindowFlags_NoSavedSettings | 
+                                    ImGuiWindowFlags_NoFocusOnAppearing | 
+                                    ImGuiWindowFlags_NoBringToFrontOnFocus;
+    
+    ImGui::Begin("##FullscreenHUD", nullptr, window_flags);
+    
+    // 获取这个透明面板的画笔
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    // 1. 实例化设置按钮并将其放置在窗口左下角
+    float btnRadius = 20.0f;
+    float padding = 20.0f; 
+    SettingBtn settingBtn({btnRadius + padding, m_height - btnRadius - padding}, btnRadius);
+    settingBtn.draw(drawList);
+    
+    ImGui::End();
 }
